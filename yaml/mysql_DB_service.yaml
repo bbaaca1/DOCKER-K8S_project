@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+name: mysql-headless
+labels:
+  net: Q-net
+spec:
+  clusterIP: None
+  selector:
+    db: mysql
+  ports:
+  - port: 3306
+    name: mysql
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-svc
+  labels:
+    net: Q-net
+  spec:
+    type: ClusterIP
+    selector:
+      db: mysql
+    ports:
+      - port: 3306
+        name: mysq

@@ -1,0 +1,62 @@
+metrics-server 설치하기 (error: Metrics API not available 조치)
+
+metrics-server 가 제공하는 주요 메트릭
+- CPU 사용량 (CPU Usage) : 클러스터 내의 각 노드 및 Pod 가 사용하는 CPU 의 양을 측정합니다.
+- 메모리 사용량 (Memory Usage) : 클러스터 내의 각 노드 및 Pod 가 사용하는 메모리의 양을 측정합니다.
+- 네트워크 입출력 (Network I/O) : 클러스터 내의 각 노드 및 Pod 가 수행하는 네트워크 입출력을 측정합니다
+
+# kubectl top nodes
+error: Metrics API not available  ====>확인
+
+1. Metrics-server 설치
+
+# kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+# metrics-server Pod 가 잘 생성되었는지 확인합니다.
+
+# kubectl get pod -A |grep metrics
+kube-system                                     metrics-server-5d875656f5-vmv66                                 0/1     Running     0          10s
+
+동작확인 
+# kubectl describe pod  -n kube-system metrics-server-5d875656f5-vmv66
+
+...
+
+(생략)
+
+...
+  Normal   Created    51s               kubelet            Created container metrics-server
+  Normal   Started    51s               kubelet            Started container metrics-server
+  Warning  Unhealthy  1s (x4 over 31s)  kubelet            Readiness probe failed: HTTP probe failed with statuscode: 500
+
+
+문제 해결을 위해 Deployment 를 수정
+------------------------------
+
+# kubectl edit deployment -n kube-system metrics-server 
+
+...
+
+(생략)
+
+...
+
+    spec:
+      containers:
+      - args:
+        - --cert-dir=/tmp
+        - --secure-port=4443
+        - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+        - --kubelet-use-node-status-port
+        - --metric-resolution=15s
+        - --kubelet-insecure-tls   ============>문장추가
+                                                공식적으로 발급받은 인증서인지 확인하지 않고 접근하겠다는 의미
+
+저장 후 시간이 조금 지나야 적용
+
+[root@kube-master ~]# k top node 
+NAME          CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%   
+kube-master   204m         5%     2599Mi          72%       
+kube-work1    30m          0%     1303Mi          36%       
+kube-work2    28m          0%     2208Mi          61%  
+ 

@@ -1,0 +1,51 @@
+1.  kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+2.  kubectl proxy
+3.  접속
+http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
+
+service-account.yaml  :만들기
+-----------------------
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kube-system
+
+실행
+kubectl create -f service-account.yaml
+
+cluster-role-binding.yaml :만들기
+---------------------------
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: admin-user
+    namespace: kube-system
+
+실행
+kubectl create -f cluster-role-binding.yaml
+
+확인
+kubectl  get sa -n kube-system
+
+NAME                                 SECRETS   AGE
+admin-user                           0         24s
+attachdetach-controller              0         94d
+bootstrap-signer                     0         94d
+certificate-controller               0         94d
+.
+.
+토큰생성
+kubectl create token admin-user -n kube-system
+
+***Token이용 접속 (복사)
+ 
+ 접속
+http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy

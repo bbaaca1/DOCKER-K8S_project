@@ -1,0 +1,79 @@
+1.수정작업
+kubectl edit configmaps -n kube-system kube-proxy
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+kind: KubeProxyConfiguration
+mode: "ipvs"
+ipvs:
+  strictARP: true   ----->수정
+!
+!
+2.MetalLoadBalancer설치
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.3/config/manifests/metallb-native.yaml
+
+3. metallb-config.yaml 생성
+------------------------
+vi metallb-config.yaml 
+
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: default
+  namespace: metallb-system
+spec:
+  addresses:
+    - 192.168.56.100-192.168.56.200
+  autoAssign: true
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: default
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - default
+
+k create -f metallb-config.yaml
+
+4. service생성
+vi service-loadbalancer-kubia.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubia-loadbalancer
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+    app: kubia
+
+ k create -f service-loadbalancer-kubia.yaml
+
+[root@kube-master yaml]# k get service -o wide
+NAME                 TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)        AGE    SELECTOR
+kubernetes           ClusterIP      10.96.0.1       <none>           443/TCP        235d   <none>
+kubia-loadbalancer   LoadBalancer   10.105.72.253   192.168.56.100   80:31624/TCP   56s    app=kubia
+---------------------------------------------------------------------------------------
+vi /etc/hosts
+192.168.111.100 kube-master
+192.168.111.110 kube-work1
+192.168.111.120 kube-work2
+192.168.56.100 test.example.com   -->추가
+
+브라우저에서 확인
+curl test.example.com
+``````````````````````````````````````````````````````````````````````````````````````````
+
+II-인그레스 컨트롤러 설치
+--------------------
+wget https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.0/deploy/static/provider/baremetal/deploy.yaml
+받아서 실행
+kubectl apply -f deploy.yaml
+또는
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.0/deploy/static/provider/baremetal/deploy.yaml
+-------------------------------------------------------
+
+

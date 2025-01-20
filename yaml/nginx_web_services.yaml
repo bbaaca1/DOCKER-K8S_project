@@ -1,0 +1,27 @@
+ apiVersion: v1
+ kind: Service
+ metadata:
+  name: nginx-qnet-svc
+  labels:
+    net: Q-net
+ spec:
+  type: ClusterIP
+  selector:
+    net: Q-net-v1
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-qcnet-svc
+  labels:
+    net: Q-net
+  spec:
+    type: ClusterIP
+    selector:
+      net: Q-net-v3
+    ports:
+      - port: 80
+        targetPort: 80

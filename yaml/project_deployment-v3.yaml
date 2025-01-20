@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: q-net-deployment-3
+  labels:
+    net: Q-net-v3
+  spec:
+    replicas: 3
+    selector:
+      matchLabels:
+        net: Q-net-v3
+    template:
+    metadata:
+      labels:
+        net: Q-net-v3
+      spec:
+        containers:- name: q-net-v3
+        image: bbaaca1/nginx-pr:v3
+        ports:
+          - containerPort: 80
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80

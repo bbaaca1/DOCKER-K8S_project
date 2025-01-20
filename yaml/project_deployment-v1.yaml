@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: q-net-deployment-1
+  labels:
+    net: Q-net-v1
+  spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      net: Q-net-v1
+    template:
+      metadata:
+        labels:
+          net: Q-net-v1
+        spec:
+          containers:
+          - name: q-net-v1
+            image: bbaaca1/nginx-pr:v1
+            ports:- containerPort: 80
+            livenessProbe:
+              httpGet:
+                path: /
+                port: 80
+# 롤링업데이트
+# kubectl set image deployment q-net-deployment-1 q-net-v1=bbaaca1/nginx-pr:v2 --record

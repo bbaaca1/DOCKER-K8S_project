@@ -1,0 +1,7 @@
+ apiVersion: v1
+ kind: Pod
+ metadata:
+  name: limitrangetest
+ spec:
+  containers:- name: nginx-c
+ image: nginx
